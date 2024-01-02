@@ -10,7 +10,7 @@ def handle_date(obj):
     raise TypeError("Object of type '%s' is not JSON serializable" % type(obj).__name__)
 
 
-def send_data_over_socket(file_path, host='127.0.0.1', port=9999, chunk_size=3):
+def send_data_over_socket(file_path, host='spark-master', port=9999, chunk_size=2):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((host, port))
     s.listen(1)
@@ -33,10 +33,11 @@ def send_data_over_socket(file_path, host='127.0.0.1', port=9999, chunk_size=3):
                         chunk = pd.DataFrame(records)
                         print(chunk)
                         for record in chunk.to_dict(orient='records'):
-                            serialize_data = json.dumps(record).encode('utf-8')
+                            serialize_data = json.dumps(record, default=handle_date).encode('utf-8')
                             conn.send(serialize_data + b'\n')
                             time.sleep(5)
                             last_sent_index += 1
+
                         records = []
         except (BrokenPipeError, ConnectionResetError):
             print("Client disconnected.")
@@ -46,4 +47,4 @@ def send_data_over_socket(file_path, host='127.0.0.1', port=9999, chunk_size=3):
 
 
 if __name__ == "__main__":
-    send_data_over_socket("../datasets/yelp_academic_dataset_review.json")
+    send_data_over_socket("datasets/yelp_academic_dataset_review.json")
