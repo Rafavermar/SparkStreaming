@@ -1,10 +1,26 @@
 from time import sleep
 
 import pyspark
+import openai
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructField, StringType, StructType, FloatType
 from pyspark.sql.functions import from_json, col, when, udf
 from config.config import config
+
+
+def sentiment_analysis(comment) -> str:
+    if comment:
+        import openai
+        client = openai.OpenAI(api_key=config['openai']['api_key'])
+        response = client.chat.completions.create(
+            model='gpt-3.5-turbo',
+            messages=[
+                {"role": "system", "content": "You are a machine learning model tasked with classifying comments as POSITIVE, NEGATIVE, or NEUTRAL. You should respond with only one of these words, adding nothing else."},
+                {"role": "user", "content": comment}
+            ]
+        )
+        return response.choices[0].message.content.strip()
+    return "Empty"
 
 
 def start_streaming(spark):
@@ -24,6 +40,12 @@ def start_streaming(spark):
             ])
 
             stream_df = stream_df.select(from_json(col('value'), schema).alias("data")).select(("data.*"))
+
+            sentiment_analysis_udf = udf(sentiment_analysis, StringType())
+
+            stream_df = stream_df.withColumn('feedback', when(col('text').isNotNull(),
+                                                              sentiment_analysis_udf(col('text'))).otherwise(None)
+                                             )
 
             kafka_df = stream_df.selectExpr("CAST(review_id AS STRING) AS key", "to_json(struct(*)) AS value")
 
