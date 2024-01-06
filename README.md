@@ -2,7 +2,7 @@
 
 
 ## Introduction
-This project builds an end-to-end data engineering pipeline for real-time sentiment analysis using Yelp's Customer Reviews Dataset. It integrates TCP/IP Socket, Apache Spark, OpenAI LLM, Kafka, and Elasticsearch.
+This project builds an end-to-end data engineering pipeline for real-time sentiment analysis using Yelp's Customer Reviews Dataset (7 millions records). It integrates TCP/IP Socket, Apache Spark, OpenAI LLM, Kafka, and Elasticsearch.
 
 
 ## System Architecture
