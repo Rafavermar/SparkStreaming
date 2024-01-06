@@ -10,7 +10,6 @@ from config.config import config
 
 def sentiment_analysis(comment) -> str:
     if comment:
-        import openai
         client = openai.OpenAI(api_key=config['openai']['api_key'])
         response = client.chat.completions.create(
             model='gpt-3.5-turbo',
