@@ -1,0 +1,99 @@
+#StreamingSpark.txt
+## Commands for Setting Up Real-Time Sentiment Analysis Project
+
+# Initial Setup
+
+# Create 'src' Directory and Navigate
+
+
+(venv) PS C:\Users\jrver\PycharmProjects\Python\StreamingSpark> mkdir src
+cd src
+
+# Create Docker and Spark Configuration Files
+
+
+New-Item docker-compose.yml
+New-Item Dockerfile.spark 
+
+
+# Create Additional Directories
+
+mkdir config, jobs, datasets
+
+
+# Python Environment and Dependencies
+## Upgrade pip and Install Required Packages
+
+
+python.exe -m pip install --upgrade pip
+pip install openai pyspark confluent_kafka fastavro
+
+
+# Freeze Dependencies (the requirements.txt is needed on the Dockerfile.spark)
+
+pip freeze > requirements.txt
+
+
+# Create Configuration Script
+
+New-Item config/config.py
+
+
+# Docker Setup and Additional Python Packages
+
+## Start Docker Containers
+
+docker compose up -d --build
+
+## Install Additional Python Packages
+
+pip install pandas
+pip install python-dotenv
+
+## Running the Socket Inside Docker
+
+cd src
+docker exec -it spark-master /bin/bash
+python jobs/streaming-socket.py
+
+## Spark Streaming Execution
+
+
+[ src ]
+docker compose up -d --build
+docker exec -it spark-master spark-submit --master spark://spark-master:7077 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 jobs/spark-streaming.py
+
+
+# Troubleshooting
+
+## Error Handling for OpenAI API Changes
+
+   If you encounter an error related to openai.ChatCompletion:
+
+at org.apache.spark.sql.execution.streaming.StreamExecution$$anon$1.run(StreamExecution.scala:211)
+Caused by: org.apache.spark.api.python.PythonException: Traceback (most recent call last):
+  File "/opt/bitnami/spark/jobs/spark-streaming.py", line 14, in sentiment_analysis
+    completion = openai.ChatCompletion.create(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/bitnami/python/lib/python3.11/site-packages/openai/lib/_old_api.py", line 39, in __call__
+    raise APIRemovedInV1(symbol=self._symbol)
+openai.lib._old_api.APIRemovedInV1:
+
+
+### Solution: Modify your spark-streaming.py script as follows:
+
+python
+Copy code
+def sentiment_analysis(comment) -> str:
+    if comment:
+        import openai
+        client = openai.OpenAI(api_key=config['openai']['api_key'])
+        response = client.chat.completions.create(
+            model='gpt-3.5-turbo',
+            messages=[
+                {"role": "system", "content": "You are a machine learning model tasked with classifying comments as POSITIVE, NEGATIVE, or NEUTRAL. You should respond with only one of these words, adding nothing else."},
+                {"role": "user", "content": comment}
+            ]
+        )
+        return response.choices[0].message.content.strip()
+    return "Empty"
