@@ -45,6 +45,14 @@ This section describes any modifications to the original system architecture, fo
 ## CMD Commands needed ( Windows )
  [cmd_comands](assets/cmd_comands.txt)
 
+ ## Resources
+   - Customer Reviews Dataset: https://www.yelp.com/dataset/
+   - Confluent Cloud Docs: https://docs.confluent.io/cloud
+   - Elasticsearch Documentation: https://www.elastic.co/guide
+   - Docker Compose Documentation: https://docs.docker.com/compose/
+   - Apache Kafka Official Site: https://kafka.apache.org/
+   - Apache Spark Official Site: https://spark.apache.org/
+
 ## Disclaimer
 This project not only replicates but also builds upon Yusuf's foundational work, providing an up-to-date, real-world application of data engineering techniques.
 Inspired by [airscholar's RealtimeStreamingEngineering](https://github.com/airscholar/RealtimeStreamingEngineering#)
